@@ -1,0 +1,36 @@
+# ======================
+# Python (Backend)
+# ======================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+venv/
+env/
+
+# ======================
+# Model files
+# ======================
+# kalau model kecil, boleh dihapus dari ignore
+# kalau besar, lebih baik di-ignore
+*.pkl
+
+# ======================
+# Node (Frontend)
+# ======================
+node_modules/
+dist/
+build/
+
+# ======================
+# OS Files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# VS Code
+# ======================
+.vscode/
