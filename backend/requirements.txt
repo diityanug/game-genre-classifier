@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scikit-learn
+joblib
+pandas
+nltk
+requests
+beautifulsoup4
+matplotlib
+seaborn
