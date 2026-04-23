@@ -224,7 +224,7 @@ X_train_text, X_test_text, y_train, y_test = train_test_split(
 pipeline = Pipeline([
     ('tfidf', TfidfVectorizer()),
     ('nb', MultinomialNB())
-])
+], memory=None)
 
 # grid param
 param_grid = {
@@ -269,6 +269,15 @@ print("Model saved successfully in'../models/model.pkl'")
 
 
 ## TESTING INTERACTIVE PROBABILITY ##
+def preprocess_pipeline(text):
+    if not isinstance(text, str):
+        return ''
+    text = text.lower()
+    text = re.sub(r"(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.?", "", text)
+    text = re.sub(r"\d+", "", text)
+    words = [word for word in text.split() if word not in stop]
+    return ' '.join([snowball.stem(w) for w in words])
+
 def predict_genre_probabilities(title, description):
     combined_text = preprocess_pipeline(title) + " " + preprocess_pipeline(description)
     probabilities = grid_search.predict_proba([combined_text])[0]
@@ -289,7 +298,7 @@ while True:
     
     predicted_probs = predict_genre_probabilities(title_input, description_input)
     
-    print(f"\nGenre Probability Analysis Results:")
+    print("\nGenre Probability Analysis Results:")
     for item in predicted_probs:
         print(f" - {item['genre']}: {item['probability']:.2f}%")
     print("-" * 50 + "\n")
