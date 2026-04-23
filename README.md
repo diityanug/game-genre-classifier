@@ -1,4 +1,4 @@
-# 🎮 Game Genre AI Classifier
+# 🎮 Game Genre Classifier
 
 A Full-Stack Machine Learning application designed to predict the genre of a game (Adventure, Casual, or Sport) based on its Title and Description. 
 
