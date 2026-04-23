@@ -1,10 +1,9 @@
 fastapi
 uvicorn
+pydantic
 scikit-learn
-joblib
 pandas
 nltk
-requests
-beautifulsoup4
+joblib
 matplotlib
 seaborn
