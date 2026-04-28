@@ -17,6 +17,13 @@ except LookupError:
     nltk.download('stopwords', quiet=True)
     stop = set(stopwords.words('english'))
 
+custom_game_words = {
+    'game', 'games', 'play', 'player', 'players', 'playing', 
+    'experience', 'world', 'feature', 'features', 'new', 'time', 
+    'make', 'take', 'get', 'like', 'one'
+}
+stop = stop.union(custom_game_words)
+
 snowball = SnowballStemmer("english")
 
 app = FastAPI(title="Genre Game Multi-Label API")
@@ -75,23 +82,47 @@ async def predict_genre(request: GameRequest):
 
     probabilities = model.predict_proba([combined_text])[0]
     
-    # Ambil probabilitas tertinggi sebagai acuan "Confidence" utama
     max_prob = max(probabilities) * 100
 
-    if max_prob < 30.0:
+    if max_prob < 20.0:
         return {
             "status": "error",
             "message": "The Model is confused! This content doesn't clearly match Adventure, Casual, or Sports genres."
         }
 
-    genre_probs = [
-        {"genre": g.capitalize(), "probability": round(p * 100, 2)}
-        for g, p in zip(mlb.classes_, probabilities)
-    ]
+    tfidf_vectorizer = model.named_steps['tfidf']
+    clf_onevsrest = model.named_steps['clf']
+    feature_names = tfidf_vectorizer.get_feature_names_out()
 
-    filtered_results = [res for res in genre_probs if res['probability'] >= 15.0]
+    input_vector = tfidf_vectorizer.transform([combined_text])
+    present_word_indices = input_vector.nonzero()[1]
+
+    filtered_results = []
+    
+    for idx, (genre_name, prob) in enumerate(zip(mlb.classes_, probabilities)):
+        prob_percent = round(prob * 100, 2)
+        
+        if prob_percent >= 15.0:
+            nb_estimator = clf_onevsrest.estimators_[idx]
+            
+            word_scores = []
+            for word_idx in present_word_indices:
+                word = feature_names[word_idx]
+                weight = nb_estimator.feature_log_prob_[1][word_idx] * input_vector[0, word_idx]
+                word_scores.append((word, weight))
+            
+            word_scores.sort(key=lambda x: x[1], reverse=True)
+            top_words = [w[0] for w in word_scores[:3]]
+
+            filtered_results.append({
+                "genre": genre_name.capitalize(),
+                "probability": prob_percent,
+                "keywords": top_words
+            })
+
+            sorted_top_results = sorted(filtered_results, key=lambda x: x['probability'], reverse=True)[:5]
 
     return {
         "status": "success",
-        "data": sorted(filtered_results, key=lambda x: x['probability'], reverse=True)
+        "data": sorted_top_results
     }

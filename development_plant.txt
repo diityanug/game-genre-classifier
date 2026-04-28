@@ -1,22 +1,14 @@
-2. Multi-Label Classification
-Sangat jarang ada game modern yang hanya terpaku pada satu genre. Final Fantasy misalnya, adalah kombinasi Action dan RPG.
+1. Explainable AI (XAI) - Word Highlighting
+Konsep: Tunjukkan kenapa model memilih genre tertentu. Saat hasil keluar, highlight kata-kata spesifik di dalam teks deskripsi (misal: "sword", "explore") yang memiliki bobot TF-IDF tertinggi untuk genre tersebut.
 
-Cara Kerja: Ubah arsitektur prediksi dari Single-Class (memilih satu yang tertinggi) menjadi Multi-Label. Model akan mengembalikan rentang genre yang relevan, misalnya: "Game ini adalah 80% Action, 60% RPG, dan 20% Adventure".
+Nilai Jual: Menunjukkan pemahaman ML tingkat lanjut (interpretability). Anda tidak hanya membuat black-box AI, tapi sistem analitik berbasis teks yang transparan.
 
-Nilai Jual: Mengangkat kompleksitas pemahaman Machine Learning Anda dari klasifikasi dasar ke tingkat menengah.
+2. Radar Chart untuk Multi-Label (UI/UX)
+Konsep: Ganti atau lengkapi progress bar linear dengan grafik jaring laba-laba (Radar/Spider Chart) menggunakan library ringan seperti Recharts atau Chart.js.
 
-3. Sistem Feedback Loop (Reinforcement)
-Model AI yang baik adalah model yang terus belajar dari penggunanya.
+Nilai Jual: Sangat ideal untuk merepresentasikan data Multi-Label. Tampilannya jauh lebih futuristik, analitis, dan padat informasi tanpa memerlukan elemen visual gambar cover game sama sekali.
 
-Cara Kerja: Tambahkan tombol jempol ke atas (👍) atau jempol ke bawah (👎) di bawah kartu hasil prediksi. Jika user merasa prediksi AI salah, mereka bisa mengoreksinya. Simpan data masukan dan koreksi ini ke dalam database (seperti PostgreSQL atau MongoDB).
+3. Batch Processing via CSV (Automation)
+Konsep: Tambahkan tab atau tombol untuk mengunggah file .csv berisi puluhan atau ratusan deskripsi game sekaligus. Backend FastAPI akan memproses semuanya dan mengembalikan file hasilnya.
 
-Nilai Jual: Membangun pipeline data yang berkelanjutan untuk melatih ulang (retrain) model Anda di masa depan dengan dataset yang semakin kaya.
-
-4. Metrik Performa & Riwayat (Dashboarding)
-User sangat menyukai aplikasi yang terasa cepat dan memiliki memori.
-
-Cara Kerja:
-
-Inference Time: Tampilkan metrik waktu eksekusi backend (misalnya: "Prediksi diselesaikan dalam 42ms"). Ini menunjukkan bahwa algoritma Anda efisien.
-
-Local History: Gunakan Local Storage di React untuk menyimpan 5 pencarian terakhir user, sehingga jika mereka refresh halaman, histori prediksi mereka tidak hilang.
+Nilai Jual: Mendemonstrasikan efisiensi algoritma dan skalabilitas backend Anda dalam menangani otomatisasi pemrosesan data secara masal, sebuah nilai plus yang besar di lingkungan enterprise.
