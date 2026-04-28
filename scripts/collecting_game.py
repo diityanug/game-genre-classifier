@@ -4,6 +4,8 @@ import time
 import urllib.parse
 from bs4 import BeautifulSoup
 
+TARGET_GENRES = ['Adventure', 'Sports', 'Casual']
+
 def get_games_by_genre(genre, limit=1500, request_type='genre'):
     encoded_genre = urllib.parse.quote(genre)
     url = f'https://steamspy.com/api.php?request={request_type}&{request_type}={encoded_genre}'
@@ -23,7 +25,7 @@ def get_app_details(appid):
             response = requests.get(url, timeout=5)
             data = response.json()
             if data[str(appid)]['success']:
-                time.sleep(0.1) 
+                time.sleep(0.2)
                 return data[str(appid)]['data']
         except Exception: 
             time.sleep(1)
@@ -40,77 +42,61 @@ def clean_description(html_description):
     clean_text = ' '.join(text.split())
     return clean_text.strip()
 
-def process_single_game(appid, genre_name, collected_appids):
+def process_single_game(appid, collected_appids):
     if appid in collected_appids:
         return None
         
     app_details = get_app_details(appid)
-    if not app_details:
-        return None
-    
-    if app_details.get('type', '') != 'game':
+    if not app_details or app_details.get('type', '') != 'game':
         return None  
         
-    game_genres = [g['description'] for g in app_details.get('genres', [])]
-    if genre_name not in game_genres:
+    raw_genres = [g['description'] for g in app_details.get('genres', [])]
+    
+    matched_genres = [g for g in raw_genres if g in TARGET_GENRES]
+    
+    if not matched_genres:
         return None  
         
     description = clean_description(app_details.get('detailed_description', ''))
-    if not description.strip():
+    if len(description.split()) < 10:
         return None  
         
     return {
         'title': app_details.get('name', ''),
-        'genres': ', '.join(game_genres),
+        'genres': ', '.join(matched_genres),
         'description': description
     }
 
-def collect_data_for_genre(genre_name, file_name, genre_limit=500):
-    print(f"\nCollecting games for genre: {genre_name}")
-    
-    games = get_games_by_genre(genre_name, limit=genre_limit*3, request_type='genre')
-    if not games:
-        print(f"No games found for genre '{genre_name}'")
-        return
-        
-    all_games = []
+def start_collection(genre_list, final_file, limit_per_genre=500):
+    all_collected_data = []
     collected_appids = set()
-    games_collected = 0
 
-    for game in games:
-        if games_collected >= genre_limit:
-            break
-            
-        appid = game.get('appid', '')
-        game_data = process_single_game(appid, genre_name, collected_appids)
+    for genre in genre_list:
+        print(f"\n--- Searching for: {genre} ---")
+        raw_games = get_games_by_genre(genre, limit=limit_per_genre*2)
         
-        if game_data:
-            all_games.append(game_data)
-            collected_appids.add(appid)
-            games_collected += 1
-            print(f"{games_collected}. Games collected for: {game_data['title']}")
+        count = 0
+        for game in raw_games:
+            if count >= limit_per_genre:
+                break
+                
+            appid = game.get('appid')
+            game_data = process_single_game(appid, collected_appids)
+            
+            if game_data:
+                all_collected_data.append(game_data)
+                collected_appids.add(appid)
+                count += 1
+                print(f"[{genre}] {count}. Collected: {game_data['title']} (Genres: {game_data['genres']})")
 
-    print(f"Total games collected for genre '{genre_name}': {games_collected}")
-
-    if games_collected < genre_limit:
-        print(f"Warning: Only {games_collected} games collected for genre '{genre_name}'.")
-    else:
-        print(f"Successfully collected {games_collected} games for genre '{genre_name}'.")
-
-    # Save game dataset to CSV file
-    df = pd.DataFrame(all_games)
-    df.to_csv(file_name, index=False, encoding='utf-8')
-    print(f"\nGame dataset collection complete. Data saved to '{file_name}'")
-
+    df = pd.DataFrame(all_collected_data)
+    df.to_csv(final_file, index=False, encoding='utf-8')
+    print(f"\n✅ Success! Total unique games: {len(df)}")
+    print(f"Data saved to: {final_file}")
 
 if __name__ == '__main__':
-    # Collecting games for genre 'Adventure'
-    collect_data_for_genre('Adventure', '../data/adventure_games_data.csv', genre_limit=500)
-
-    # Collecting games for genre 'Sports'
-    collect_data_for_genre('Sports', '../data/sports_games_data.csv', genre_limit=500)
-
-    # Collecting games for genre 'Casual'
-    collect_data_for_genre('Casual', '../data/casual_games_data.csv', genre_limit=500)
-
-
+    start_collection(
+        genre_list=TARGET_GENRES, 
+        final_file='../data/multigenre_game_datasets.csv', 
+        limit_per_genre=500
+    )
