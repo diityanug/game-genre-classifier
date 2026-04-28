@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Gamepad2, FileText, Sparkles, Trophy, Loader2, AlertCircle, Sun, Moon, X, Info } from 'lucide-react';
 
-const GenreClassifier = () => {
+const GenreClassifier = ({ isDark, setIsDark }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [predictions, setPredictions] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePredict = async () => {
-    if (!title || !description) {
-      alert("Judul dan Deskripsi tidak boleh kosong!");
-      return;
-    }
+  useEffect(() => {
+    document.body.style.backgroundColor = isDark ? '#0f172a' : '#FDFBF7'; 
+    document.body.style.transition = 'background-color 0.3s ease';
+  }, [isDark]);
+
+  const handlePredict = async (e) => {
+    e.preventDefault(); 
 
     setIsLoading(true);
     setPredictions(null);
+    setErrorMsg(null);
 
     try {
       const response = await fetch('http://localhost:8000/predict', {
@@ -22,77 +27,203 @@ const GenreClassifier = () => {
         body: JSON.stringify({ title, description })
       });
 
-      if (!response.ok) throw new Error("Gagal mengambil data dari server");
+      if (!response.ok) throw new Error("Connection failed.");
 
-      const data = await response.json();
-      setPredictions(data);
+      const result = await response.json();
+      
+      if (result.status === 'error') {
+        setErrorMsg(result.message);
+      } else {
+        setPredictions(result.data);
+      }
     } catch (error) {
       console.error("Error:", error);
-      alert("Server Backend (FastAPI) belum menyala atau terjadi error.");
+      setErrorMsg("Server offline. Backend didn't response.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const theme = {
+    card: isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-[#EAE6DF]',
+    textMain: isDark ? 'text-white' : 'text-slate-900',
+    textMuted: isDark ? 'text-slate-400' : 'text-stone-500',
+    label: isDark ? 'text-slate-300' : 'text-slate-800',
+    inputBg: isDark 
+      ? 'bg-slate-950 border-slate-800 text-white focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder-slate-600' 
+      : 'bg-[#FDFBF7] border-[#EAE6DF] text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 placeholder-stone-400',
+    iconPrimary: isDark ? 'text-red-500' : 'text-slate-900',
+    button: isDark 
+      ? 'bg-red-700 hover:bg-red-800 text-white border border-red-700' 
+      : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900',
+    resultCard: isDark ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-white hover:bg-stone-50 border border-transparent',
+    resultTopCard: isDark ? 'bg-slate-800 border-red-500/30' : 'bg-[#F4F1EB] border-[#D8D3C8]',
+    progressBg: isDark ? 'bg-slate-950' : 'bg-[#EAE6DF]',
+    progressFill: isDark ? 'bg-red-600' : 'bg-slate-900',
+    infoBox: isDark ? 'bg-slate-800/50 text-slate-300 border-slate-700' : 'bg-slate-100 text-slate-600 border-slate-300',
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10">
-      <h1 className="text-3xl font-bold text-center text-indigo-600 mb-2">Game Genre AI Classifier</h1>
-      <p className="text-center text-gray-500 mb-8">Tebak genre game berdasarkan judul dan deskripsi</p>
+    <>
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+        `}
+      </style>
 
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Judul Game</label>
-          <input 
-            type="text" 
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            placeholder="Contoh: Cosmic Hoops"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi Game</label>
-          <textarea 
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg h-32 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-            placeholder="Masukkan sinopsis atau deskripsi gameplay..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <button 
-          onClick={handlePredict}
-          disabled={isLoading}
-          className={`w-full py-3 rounded-lg font-semibold transition-colors text-white 
-            ${isLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-        >
-          {isLoading ? 'Sedang Menganalisa...' : 'Analisa Genre AI ✨'}
-        </button>
-      </div>
-
-      {predictions && (
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Hasil Analisis:</h2>
-          <div className="space-y-4">
-            {predictions.map((pred, index) => (
-              <div key={index} className="flex items-center">
-                <span className="w-24 font-medium text-gray-700">{pred.genre}</span>
-                <div className="flex-1 ml-4 bg-gray-200 rounded-full h-4 overflow-hidden">
-                  <div 
-                    className="bg-indigo-500 h-4 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${pred.probability}%` }}
-                  ></div>
-                </div>
-                <span className="w-16 text-right text-sm font-semibold text-indigo-600">
-                  {pred.probability}%
-                </span>
-              </div>
-            ))}
+      <div 
+        className={`max-w-2xl mx-auto p-6 md:p-10 rounded-none md:rounded-xl border my-6 md:mt-10 mx-4 md:mx-auto transition-colors duration-300 shadow-sm ${theme.card}`}
+        style={{ fontFamily: "'Exo', sans-serif" }}
+      >
+        
+        <div className="flex justify-between items-start mb-10">
+          <div className="flex-1">
+            <h1 className={`text-3xl md:text-4xl font-bold tracking-tight mb-2 transition-colors duration-300 ${theme.textMain}`}>
+              Genre Game Classifier
+            </h1>
+            <p className={`text-sm md:text-base font-medium transition-colors duration-300 ${theme.textMuted}`}>
+              Game genre classification system based on text using Naive Bayes.
+            </p>
           </div>
+          
+          <button 
+            type="button" 
+            onClick={() => setIsDark(!isDark)}
+            className={`p-3 rounded-md transition-all duration-300 focus:outline-none ${isDark ? 'bg-slate-800 text-red-400 hover:bg-slate-700' : 'bg-[#F4F1EB] text-slate-900 hover:bg-[#EAE6DF]'}`}
+            title="Toggle Theme"
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
         </div>
-      )}
-    </div>
+
+        <form onSubmit={handlePredict} className="space-y-6">
+          
+          <div className="relative group">
+            <label className={`block font-semibold mb-2 uppercase tracking-widest text-xs transition-colors duration-300 ${theme.label}`}>
+              Game Title <span className="text-red-500">*</span>
+            </label>
+            
+            <div className="relative flex items-center">
+              <div className="absolute left-0 pl-4 pointer-events-none">
+                <Gamepad2 className={`h-5 w-5 transition-colors duration-300 ${theme.iconPrimary}`} />
+              </div>
+              <input 
+                type="text" 
+                required 
+                className={`w-full pl-12 pr-10 py-3.5 text-sm md:text-base rounded-md transition-all outline-none font-medium ${theme.inputBg}`}
+                placeholder="Insert title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              {title && (
+                <button type="button" onClick={() => setTitle('')} className="absolute right-4 text-stone-400 hover:text-red-500 transition-colors">
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="relative group">
+            <div className="flex justify-between items-end mb-2">
+              <label className={`block font-semibold uppercase tracking-widest text-xs transition-colors duration-300 ${theme.label}`}>
+                Description / Synopsis <span className="text-red-500">*</span>
+              </label>
+              
+              <span className={`text-xs font-semibold ${description.length > 0 ? theme.iconPrimary : theme.textMuted}`}>
+                {description.length} chr
+              </span>
+            </div>
+            <div className="relative">
+              <div className="absolute top-4 left-4 pointer-events-none">
+                <FileText className={`h-5 w-5 transition-colors duration-300 ${theme.iconPrimary}`} />
+              </div>
+              <textarea 
+                required 
+                className={`w-full pl-12 pr-10 py-3.5 text-sm md:text-base rounded-md h-32 md:h-40 transition-all outline-none resize-none font-medium ${theme.inputBg}`}
+                placeholder="Insert game description..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              {description && (
+                <button type="button" onClick={() => setDescription('')} className="absolute top-4 right-4 text-stone-400 hover:text-red-500 transition-colors">
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className={`flex items-start gap-3 p-4 border rounded-md text-xs italic leading-relaxed transition-colors duration-300 ${theme.infoBox}`}>
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <p>
+              <strong>Note:</strong> Currently, this model is limited to predicting <strong>Adventure, Casual, and Sports</strong> genres. Updates will be rolled out to support more genres in the future.
+            </p>
+          </div>
+
+          {errorMsg && (
+            <div className="flex items-start gap-3 p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <p className="text-sm font-semibold tracking-wide">{errorMsg}</p>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            className={`w-full py-4 rounded-md font-bold text-base tracking-widest uppercase transition-all flex items-center justify-center gap-3
+              ${isLoading 
+                ? 'bg-stone-300 text-stone-500 cursor-not-allowed border-transparent' 
+                : theme.button
+              }`}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Genre Analysis
+              </>
+            )}
+          </button>
+        </form>
+
+        {predictions && !errorMsg && (
+          <div className={`mt-10 pt-8 border-t transition-colors duration-300 ${isDark ? 'border-slate-800' : 'border-[#EAE6DF]'}`}>
+            <div className="flex items-center gap-3 mb-6">
+              <Trophy className={`h-6 w-6 ${theme.iconPrimary}`} />
+              <h2 className={`text-xl font-bold uppercase tracking-widest transition-colors duration-300 ${theme.textMain}`}>
+                Prediction Result
+              </h2>
+            </div>
+            
+            <div className="space-y-3">
+              {predictions.map((pred, index) => {
+                const isTopResult = index === 0;
+                return (
+                  <div key={index} className={`flex items-center p-3 md:p-4 rounded-md transition-colors border ${isTopResult ? theme.resultTopCard : `${theme.resultCard}`}`}>
+                    <span className={`w-24 md:w-32 truncate font-bold tracking-wider uppercase ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
+                      {pred.genre}
+                    </span>
+                    
+                    <div className={`flex-1 mx-3 md:mx-5 h-2 rounded-sm overflow-hidden ${theme.progressBg}`}>
+                      <div 
+                        className={`h-full transition-all duration-700 ease-out ${isTopResult ? theme.progressFill : (isDark ? 'bg-slate-600' : 'bg-stone-300')}`}
+                        style={{ width: `${pred.probability}%` }}
+                      ></div>
+                    </div>
+                    
+                    <span className={`w-16 text-right font-semibold ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
+                      {pred.probability}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
