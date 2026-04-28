@@ -1,8 +1,8 @@
-# 🎮 Game Genre Classifier
+# 🎮 Game Genre Classifier (Multi-Label & XAI)
 
-A Full-Stack Machine Learning application designed to predict the genre of a game (Adventure, Casual, or Sport) based on its Title and Description. 
+A Full-Stack Machine Learning application designed to predict multiple genres and tags of a game (supporting 15+ categories including Action, RPG, Horror, and Strategy) based on its Title and Description. 
 
-This project utilizes **TF-IDF** and **Multinomial Naive Bayes** for Natural Language Processing (NLP) and text classification, wrapped in an interactive web interface built with React.
+This project utilizes a **Multi-Label Classification** architecture using **TF-IDF**, **Complement Naive Bayes**, and **OneVsRestClassifier** for Natural Language Processing (NLP). It also features **Explainable AI (XAI)** to highlight the specific keywords that influenced the AI's decision, wrapped in an interactive web interface built with React.
 
 ---
 
@@ -17,10 +17,11 @@ This project utilizes **TF-IDF** and **Multinomial Naive Bayes** for Natural Lan
 * Python
 * FastAPI & Uvicorn
 
-**Machine Learning:**
-* Scikit-Learn (TF-IDF, Naive Bayes, Pipeline, GridSearchCV)
-* NLTK (Stopwords, Stemming)
+**Machine Learning & Data Engineering:**
+* Scikit-Learn (TF-IDF, ComplementNB, OneVsRestClassifier, MultiLabelBinarizer, GridSearchCV)
+* NLTK (Custom Stopwords, Stemming)
 * Pandas & Joblib
+* Requests & BeautifulSoup4 (Hybrid Scraping via Steam API & SteamSpy)
 
 ---
 
@@ -28,15 +29,21 @@ This project utilizes **TF-IDF** and **Multinomial Naive Bayes** for Natural Lan
 
 ```text
 GAME-GENRE-CLASSIFIER/
-├── backend/                # API Server (FastAPI)
+├── backend/                # API Server (FastAPI) & XAI Logic
 │   ├── main.py
-│   └── requirements.txt
-├── data/                   # Raw datasets & preprocessing results
+├── data/                   # Raw datasets (~15k+ rows) & preprocessing results
 ├── frontend/               # User Interface (React/Vite)
 │   ├── src/
+│   │   ├── components/
+|   |   |  └── GenreClassifier.jsx
+|   |   ├── App.jsx
+|   |   └── main.jsx
+│   ├── style/
+|   |   └── global.css
 │   ├── index.html
 │   └── package.json
-├── models/                 # AI model storage (.pkl)
-└── scripts/                # Training & scraping scripts
-    ├── models_train.py
-    └── scraping_game.py
+├── models/                 # AI model storage (.pkl & mlb.pkl)
+├── scripts/                # Training & Automated scraping scripts
+│   ├── collecting_game.py
+│   └── models_train.py
+└── requirements.txt
