@@ -1,5 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, FileText, Sparkles, Trophy, Loader2, AlertCircle, Sun, Moon, X, Info } from 'lucide-react';
+import { Gamepad2, FileText, Trophy, Loader2, AlertCircle, Sun, Moon, X } from 'lucide-react';
+
+const HighlightedDescription = ({ text, keywords, isDark }) => {
+  if (!keywords || keywords.length === 0 || !text) return <p className="text-sm italic mt-2 opacity-80">"{text}"</p>;
+
+  const regexPattern = new RegExp(`\\b(${keywords.join('|')})[a-z]*\\b`, 'gi');
+  const parts = text.split(regexPattern);
+
+  return (
+    <p className="text-sm mt-3 leading-relaxed border-l-2 pl-3 border-slate-500 opacity-90 italic">
+      "
+      {parts.map((part, i) => {
+        const isMatch = keywords.some(k => part.toLowerCase().startsWith(k.toLowerCase()));
+        if (isMatch) {
+          return (
+            <mark 
+              key={i} 
+              className={`px-1 mx-0.5 rounded-sm font-bold bg-transparent ${isDark ? 'text-red-400 bg-red-900/40' : 'text-slate-900 bg-slate-300/60'}`}
+            >
+              {part}
+            </mark>
+          );
+        }
+        return part;
+      })}
+      "
+    </p>
+  );
+};
 
 const GenreClassifier = ({ isDark, setIsDark }) => {
   const [title, setTitle] = useState('');
@@ -60,7 +88,6 @@ const GenreClassifier = ({ isDark, setIsDark }) => {
     resultTopCard: isDark ? 'bg-slate-800 border-red-500/30' : 'bg-[#F4F1EB] border-[#D8D3C8]',
     progressBg: isDark ? 'bg-slate-950' : 'bg-[#EAE6DF]',
     progressFill: isDark ? 'bg-red-600' : 'bg-slate-900',
-    infoBox: isDark ? 'bg-slate-800/50 text-slate-300 border-slate-700' : 'bg-slate-100 text-slate-600 border-slate-300',
   };
 
   return (
@@ -152,13 +179,6 @@ const GenreClassifier = ({ isDark, setIsDark }) => {
             </div>
           </div>
 
-          <div className={`flex items-start gap-3 p-4 border rounded-md text-xs italic leading-relaxed transition-colors duration-300 ${theme.infoBox}`}>
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <p>
-              <strong>Note:</strong> Currently, this model is limited to predicting <strong>Adventure, Casual, and Sports</strong> genres. Updates will be rolled out to support more genres in the future.
-            </p>
-          </div>
-
           {errorMsg && (
             <div className="flex items-start gap-3 p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
               <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -201,21 +221,38 @@ const GenreClassifier = ({ isDark, setIsDark }) => {
               {predictions.map((pred, index) => {
                 const isTopResult = index === 0;
                 return (
-                  <div key={index} className={`flex items-center p-3 md:p-4 rounded-md transition-colors border ${isTopResult ? theme.resultTopCard : `${theme.resultCard}`}`}>
-                    <span className={`w-24 md:w-32 truncate font-bold tracking-wider uppercase ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
-                      {pred.genre}
-                    </span>
+                  <div key={index} className={`flex flex-col p-3 md:p-4 rounded-md transition-colors border ${isTopResult ? theme.resultTopCard : `${theme.resultCard}`}`}>
                     
-                    <div className={`flex-1 mx-3 md:mx-5 h-2 rounded-sm overflow-hidden ${theme.progressBg}`}>
-                      <div 
-                        className={`h-full transition-all duration-700 ease-out ${isTopResult ? theme.progressFill : (isDark ? 'bg-slate-600' : 'bg-stone-300')}`}
-                        style={{ width: `${pred.probability}%` }}
-                      ></div>
+                    <div className="flex items-center w-full">
+                      <span className={`w-24 md:w-32 truncate font-bold tracking-wider uppercase ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
+                        {pred.genre}
+                      </span>
+                      
+                      <div className={`flex-1 mx-3 md:mx-5 h-2 rounded-sm overflow-hidden ${theme.progressBg}`}>
+                        <div 
+                          className={`h-full transition-all duration-700 ease-out ${isTopResult ? theme.progressFill : (isDark ? 'bg-slate-600' : 'bg-stone-300')}`}
+                          style={{ width: `${pred.probability}%` }}
+                        ></div>
+                      </div>
+                      
+                      <span className={`w-16 text-right font-semibold ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
+                        {pred.probability}%
+                      </span>
                     </div>
-                    
-                    <span className={`w-16 text-right font-semibold ${isTopResult ? `${theme.label} text-base` : `${theme.textMuted} text-sm`}`}>
-                      {pred.probability}%
-                    </span>
+
+                    {isTopResult && pred.keywords && pred.keywords.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-slate-500/20">
+                        <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${theme.iconPrimary}`}>
+                          Decision Factors
+                        </p>
+                        <HighlightedDescription 
+                          text={description} 
+                          keywords={pred.keywords} 
+                          isDark={isDark} 
+                        />
+                      </div>
+                    )}
+
                   </div>
                 );
               })}
