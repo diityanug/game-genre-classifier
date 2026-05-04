@@ -11,13 +11,6 @@ venv/
 env/
 
 # ======================
-# Model files
-# ======================
-# kalau model kecil, boleh dihapus dari ignore
-# kalau besar, lebih baik di-ignore
-*.pkl
-
-# ======================
 # Node (Frontend)
 # ======================
 node_modules/
