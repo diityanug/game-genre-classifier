@@ -1,51 +1,44 @@
 1. Explainable AI (XAI) - Word Highlighting
 Konsep: Tunjukkan kenapa model memilih genre tertentu. Saat hasil keluar, highlight kata-kata spesifik di dalam teks deskripsi (misal: "sword", "explore") yang memiliki bobot TF-IDF tertinggi untuk genre tersebut.
-
 Nilai Jual: Menunjukkan pemahaman ML tingkat lanjut (interpretability). Anda tidak hanya membuat black-box AI, tapi sistem analitik berbasis teks yang transparan.
 
 2. Radar Chart untuk Multi-Label (UI/UX)
 Konsep: Ganti atau lengkapi progress bar linear dengan grafik jaring laba-laba (Radar/Spider Chart) menggunakan library ringan seperti Recharts atau Chart.js.
-
 Nilai Jual: Sangat ideal untuk merepresentasikan data Multi-Label. Tampilannya jauh lebih futuristik, analitis, dan padat informasi tanpa memerlukan elemen visual gambar cover game sama sekali.
 
 3. Batch Processing via CSV (Automation)
 Konsep: Tambahkan tab atau tombol untuk mengunggah file .csv berisi puluhan atau ratusan deskripsi game sekaligus. Backend FastAPI akan memproses semuanya dan mengembalikan file hasilnya.
-
 Nilai Jual: Mendemonstrasikan efisiensi algoritma dan skalabilitas backend Anda dalam menangani otomatisasi pemrosesan data secara masal, sebuah nilai plus yang besar di lingkungan enterprise.
 
-1. Implementasi Multimodal Confidence Scoring
+4. Implementasi Multimodal Confidence Scoring
 Saat ini, model kamu memberikan probabilitas untuk masing-masing genre. Kamu bisa meningkatkan akurasi dengan Thresholding Cerdas:
-
 Logic: Jika AI memprediksi Action (45%) dan Shooter (42%), berikan label keduanya. Namun jika Action (80%) dan lainnya di bawah 10%, cukup tampilkan satu.
-
 Improvement: Buat logika di Backend agar tidak hanya mengandalkan angka mentah, tapi juga melihat selisih (gap) antar skor.
 
-2. Cross-Validation & Model Monitoring
+5. Cross-Validation & Model Monitoring
 Akurasi saat training bisa menipu (overfitting).
-
 Improvement: Gunakan K-Fold Cross Validation di models_train.py untuk memastikan model stabil di berbagai lipatan data.
-
 Logging: Tambahkan sistem logging di FastAPI untuk mencatat kapan model "bingung" (skor rendah). Data yang bikin AI bingung ini bisa kamu kumpulkan untuk dilatih ulang nanti (Active Learning).
 
-3. Pembersihan Data (Data Cleaning) Tingkat Lanjut
+6. Pembersihan Data (Data Cleaning) Tingkat Lanjut
 Dataset dari Steam seringkali kotor dengan nama brand atau instruksi teknis.
 Custom Regex: Tambahkan pembersihan untuk kata-kata seperti "All rights reserved", "Intel Core i5", atau "DirectX required".
 Lemmatization: Alih-alih hanya Stemming (memotong kata), coba gunakan Lemmatization (mengembalikan kata ke bentuk kamus) menggunakan library spaCy. Ini lebih akurat untuk NLP meskipun sedikit lebih lambat.
 
-4. Fitur "Compare with Real Steam Data"
+7. Fitur "Compare with Real Steam Data"
 Ini akan menjadi fitur keren di UI React kamu.
 Fitur: Setelah user menginput judul game yang sudah ada (misal: "Cyberpunk 2077"), tambahkan tombol untuk membandingkan prediksi AI kamu dengan genre asli di Steam.
 Manfaat: Ini membuktikan seberapa dekat model buatanmu dengan standar industri.
 
-5. Optimasi Deployment & API Speed
+8. Optimasi Deployment & API Speed
 Asynchronous Processing: Pastikan semua route di FastAPI menggunakan async def agar bisa menangani banyak permintaan sekaligus.
 CORS & Security: Perketat pengaturan CORS dan tambahkan rate limiting di Backend agar API kamu tidak diserang atau di-scraping orang lain secara berlebihan.
 Dockerization: Bungkus aplikasi kamu (FE, BE, Models) ke dalam Docker Container. Ini akan memudahkan kamu memindahkan aplikasi ke server mana pun (Cloud) tanpa takut perbedaan versi library.
 
 
-Pembersihan Data (Point 3): Karena ini fondasi akurasi.
-Cross-Validation (Point 2): Agar kamu punya bukti ilmiah bahwa modelmu memang bagus.
-Dockerization (Point 5): Ini "skill mahal" yang sangat dicari di LG Sinarmas atau perusahaan teknologi lainnya.
+Pembersihan Data (Point 6): Karena ini fondasi akurasi.
+Cross-Validation (Point 5): Agar kamu punya bukti ilmiah bahwa modelmu memang bagus.
+Dockerization (Point 8): Ini "skill mahal" yang sangat dicari di LG Sinarmas atau perusahaan teknologi lainnya.
 
 ---Fitur Auto-Resume:
 
