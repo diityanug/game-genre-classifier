@@ -5,15 +5,8 @@ import urllib.parse
 from bs4 import BeautifulSoup
 import os
 
-GENRES_OFFICIAL = [
-    'Action', 'Adventure', 'RPG', 'Strategy', 'Simulation', 
-    'Sports', 'Racing', 'Casual', 'Massively Multiplayer'
-]
-
-TAGS_ADDITIONAL = [
-    'Horror', 'Shooter', 'Survival', 'Open World', 'Sci-fi', 'Fantasy'
-]
-
+GENRES_OFFICIAL = ['Action', 'Adventure', 'RPG', 'Strategy', 'Simulation', 'Sports', 'Racing', 'Casual', 'Massively Multiplayer']
+TAGS_ADDITIONAL = ['Horror', 'Shooter', 'Survival', 'Open World', 'Sci-fi', 'Fantasy']
 ALL_LABELS = GENRES_OFFICIAL + TAGS_ADDITIONAL
 
 def get_games_by_label(label, limit=2000):
@@ -106,7 +99,7 @@ def start_collection(label_list, final_file, limit_per_label=1000):
                 all_collected_data.append(game_data)
                 collected_appids.add(appid)
                 count += 1
-                print(f"[{label}] {count}. Captured: {game_data['title']} (Labels: {game_data['genres']})")
+                print(f"[{label}] {count}. Captured: {game_data['title']} (Genres: {game_data['genres']})")
         
         df_temp = pd.DataFrame(all_collected_data)
         df_temp.to_csv(final_file, index=False, encoding='utf-8')
