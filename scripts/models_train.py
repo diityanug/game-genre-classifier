@@ -9,7 +9,7 @@ from nltk.stem import SnowballStemmer
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.naive_bayes import ComplementNB # 👇 [PERUBAHAN 2: Import ComplementNB]
+from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import MultiLabelBinarizer
