@@ -27,6 +27,5 @@ CORS & Security: Perketat pengaturan CORS dan tambahkan rate limiting di Backend
 Dockerization: Bungkus aplikasi kamu (FE, BE, Models) ke dalam Docker Container. Ini akan memudahkan kamu memindahkan aplikasi ke server mana pun (Cloud) tanpa takut perbedaan versi library.
 
 
-Pembersihan Data (Point 6): Karena ini fondasi akurasi.
-Cross-Validation (Point 5): Agar kamu punya bukti ilmiah bahwa modelmu memang bagus.
-Dockerization (Point 8): Ini "skill mahal" yang sangat dicari di LG Sinarmas atau perusahaan teknologi lainnya.
+Cross-Validation: Agar kamu punya bukti ilmiah bahwa modelmu memang bagus.
+Dockerization: Ini "skill mahal" yang sangat dicari di LG Sinarmas atau perusahaan teknologi lainnya.
