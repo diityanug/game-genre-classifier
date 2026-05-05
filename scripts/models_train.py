@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 import re
 import os
 import joblib
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import SnowballStemmer
+import config
+import spacy
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -15,23 +17,15 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import accuracy_score, classification_report, hamming_loss, multilabel_confusion_matrix
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 # DATA PREPARATION
 print("=== Loading Master Dataset ===")
-file_path = '../data/game_genre_datasets.csv' 
-if not os.path.exists(file_path):
-    print(f"Error: {file_path} not found. Please run the collection script first.")
+if not os.path.exists(config.DATA_FILE_PATH):
+    print(f"Error: {config.DATA_FILE_PATH} not found. Please run the collection script first.")
     exit()
 
-df = pd.read_csv(file_path)
+df = pd.read_csv(config.DATA_FILE_PATH)
 
-target_genres = {
-    'Action', 'Adventure', 'RPG', 'Strategy', 'Simulation', 
-    'Sports', 'Racing', 'Casual', 'Massively Multiplayer', 
-    'Horror', 'Shooter', 'Survival', 'Open World', 'Sci-fi', 'Fantasy'
-}
+target_genres = set(config.ALL_LABELS)
 
 def filter_and_split_genres(genre_str):
     if not isinstance(genre_str, str): return []
@@ -51,34 +45,61 @@ y = mlb.fit_transform(df['genre_list'])
 print("Detected Classes:", mlb.classes_)
 
 # PREPROCESSING
-nltk.download('stopwords', quiet=True)
-stop = set(stopwords.words('english'))
+print("\n=== Initializing spaCy Lemmatizer ===")
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("spaCy model missing. Execute: python -m spacy download en_core_web_sm.")
+    exit()
 
-custom_game_words = {
-    'game', 'games', 'play', 'player', 'players', 'playing', 
-    'experience', 'world', 'feature', 'features', 'new', 'time', 
-    'make', 'take', 'get', 'like', 'one'
-}
-stop = stop.union(custom_game_words)
+custom_stop_words = config.CUSTOM_STOP_WORDS
+for word in custom_stop_words:
+    nlp.vocab[word].is_stop = True
 
-snowball = SnowballStemmer("english")
-
-def clean_text_pipeline(text):
+def clean_text_advanced(text):
     if not isinstance(text, str): return ''
+    
     text = text.lower()
-    text = re.sub(r"(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.?", "", text)
+    
+    for pattern in config.CLEANING_REGEX_PATTERNS:
+        text = re.sub(pattern, "", text)
+        
+    text = re.sub(r"(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.?", " ", text)
+    
     text = re.sub(r"\d+", "", text)
-    words = [word for word in text.split() if word not in stop]
-    return ' '.join([snowball.stem(w) for w in words])
 
-print("Preprocessing text data...")
-df['combined_text'] = (df['title'] + " " + df['description']).apply(clean_text_pipeline)
+    doc = nlp(text)
+    
+    cleaned_words = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct and not token.is_space]
+
+    return ' '.join(cleaned_words)
+
+print("Text preprocessing pipeline (lemmatization + custom regex)...")
+
+raw_texts = (df['title'] + " " + df['description']).tolist()
+cleaned_texts = []
+
+for doc in nlp.pipe(raw_texts, disable=["ner", "parser"]):
+    text = doc.text.lower()
+    for pattern in config.CLEANING_REGEX_PATTERNS:
+        text = re.sub(pattern, "", text)
+    text = re.sub(r"(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.?", " ", text)
+    text = re.sub(r"\d+", "", text)
+    
+    temp_doc = nlp.make_doc(text)
+    
+    cleaned_words = [token.lemma_ for token in nlp(text) if not token.is_stop and not token.is_punct and not token.is_space]
+    cleaned_texts.append(' '.join(cleaned_words))
+
+df['combined_text'] = cleaned_texts
 
 # MODEL TRAINING WITH PIPELINE & GRIDSEARCH
 print("\n=== Training Multi-Label Model ===")
 
 X_train, X_test, y_train, y_test = train_test_split(
-    df['combined_text'], y, test_size=0.2, random_state=42
+    df['combined_text'], y, 
+    test_size=config.TEST_SIZE, 
+    random_state=config.RANDOM_STATE
 )
 
 pipeline = Pipeline([
@@ -135,10 +156,10 @@ plt.show()
 
 # SAVING MODELS
 print("\n=== Saving Models ===")
-os.makedirs('../models', exist_ok=True)
-joblib.dump(best_model, "../models/model_multilabel.pkl")
-joblib.dump(mlb, "../models/mlb.pkl")
-print("Models saved successfully in '../models/'")
+os.makedirs(config.MODEL_DIR, exist_ok=True)
+joblib.dump(best_model, config.MODEL_FILE_PATH)
+joblib.dump(mlb, config.MLB_FILE_PATH)
+print(f"Models saved successfully in '{config.MODEL_DIR}/'")
 
 # INTERACTIVE TESTING
 print("\n" + "="*50)
@@ -154,7 +175,7 @@ while True:
         
     d_input = input("Insert Game Description: ")
     
-    processed_text = clean_text_pipeline(t_input + " " + d_input)
+    processed_text = clean_text_advanced(t_input + " " + d_input)
     
     probs = best_model.predict_proba([processed_text])[0]
     
@@ -173,7 +194,7 @@ while True:
     for idx in sorted_indices:
         prob_percent = probs[idx] * 100
         
-        if prob_percent >= 15.0:
+        if prob_percent >= config.CONFIDENCE_THRESHOLD:
             results_found = True
             genre_name = mlb.classes_[idx]
             
@@ -191,6 +212,6 @@ while True:
                 print(f"   Key Factors: {', '.join(top_k)}")
 
     if not results_found:
-        print("No strong genre detected (Confidence < 15%).")
+        print(f"No strong genre detected (Confidence < {config.CONFIDENCE_THRESHOLD}%).")
         
     print("-" * 50 + "\n")

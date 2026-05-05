@@ -3,7 +3,8 @@ uvicorn
 pydantic
 scikit-learn
 pandas
-nltk
 joblib
 matplotlib
 seaborn
+python-dotenv
+spacy
