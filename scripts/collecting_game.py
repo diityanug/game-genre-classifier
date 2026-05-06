@@ -3,6 +3,8 @@ import pandas as pd
 import time
 import os
 import re
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import config
 
 if not config.API_KEY:

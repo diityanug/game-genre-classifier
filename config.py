@@ -5,7 +5,8 @@ load_dotenv()
 
 # Collecting Datsets
 API_KEY = os.getenv('RAWG_API_KEY')
-DATA_FILE_PATH = os.getenv('DATA_FILE_PATH', '../data/game_genre_dataset.csv')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE_PATH = os.path.join(BASE_DIR, 'data', 'game_genre_dataset.csv')
 
 LIMIT_PER_LABEL = 1000
 BATCH_SIZE = 50
@@ -45,11 +46,22 @@ RAWG_MAPPING = {
 # Model Train
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
-CONFIDENCE_THRESHOLD = 15.0
+THRESHOLD = {
+    "Shooter": 0.25,
+    "Open World": 0.3,
+    "Massively Multiplayer": 0.3,
+    "Default": 0.4
+}
 
-MODEL_DIR = '../models'
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_DIR = os.path.join(BASE_DIR, 'models')
+
 MODEL_FILE_PATH = os.path.join(MODEL_DIR, 'model_multilabel.pkl')
 MLB_FILE_PATH = os.path.join(MODEL_DIR, 'mlb.pkl')
+
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 CUSTOM_STOP_WORDS = {
     'game', 'games', 'play', 'player', 'players', 'playing', 
