@@ -46,7 +46,7 @@ RAWG_MAPPING = {
 # Model Train
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
-THRESHOLD = {
+THRESHOLDS = {
     "Shooter": 0.25,
     "Open World": 0.3,
     "Massively Multiplayer": 0.3,

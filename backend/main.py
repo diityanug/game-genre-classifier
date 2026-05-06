@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from backend.schemas import GameRequest     
-from backend import predict                     
+from backend import predict 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))                    
 
 app = FastAPI(
     title="Multi-Label Game Genre Classifier",
