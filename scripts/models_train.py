@@ -6,6 +6,8 @@ import seaborn as sns
 import re
 import os
 import joblib
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 import spacy
 
@@ -81,14 +83,21 @@ cleaned_texts = []
 
 for doc in nlp.pipe(raw_texts, disable=["ner", "parser"]):
     text = doc.text.lower()
+    
     for pattern in config.CLEANING_REGEX_PATTERNS:
         text = re.sub(pattern, "", text)
+        
     text = re.sub(r"(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.?", " ", text)
     text = re.sub(r"\d+", "", text)
+
+    doc_clean = nlp.make_doc(text)
     
-    temp_doc = nlp.make_doc(text)
+    cleaned_words = [
+        token.lemma_
+        for token in doc_clean
+        if not token.is_stop and not token.is_punct and not token.is_space
+    ]
     
-    cleaned_words = [token.lemma_ for token in nlp(text) if not token.is_stop and not token.is_punct and not token.is_space]
     cleaned_texts.append(' '.join(cleaned_words))
 
 df['combined_text'] = cleaned_texts
@@ -121,7 +130,18 @@ best_model = grid_search.best_estimator_
 print(f"Best Parameters: {grid_search.best_params_}")
 
 # EVALUATION
-y_pred = best_model.predict(X_test)
+y_prob = best_model.predict_proba(X_test)
+
+def get_positive_probs(probs):
+    return probs[:, 1] if probs.ndim == 2 else probs
+
+y_pred = np.zeros((len(X_test), len(y_prob)))
+
+for i, label in enumerate(mlb.classes_):
+    probs = get_positive_probs(y_prob[i])
+    threshold = config.THRESHOLDS.get(label, config.THRESHOLDS["Default"])
+    
+    y_pred[:, i] = (probs >= threshold).astype(int)
 
 print("\n=== Multi-Label Evaluation ===")
 acc = accuracy_score(y_test, y_pred)
@@ -177,7 +197,12 @@ while True:
     
     processed_text = clean_text_advanced(t_input + " " + d_input)
     
-    probs = best_model.predict_proba([processed_text])[0]
+    y_prob_input = best_model.predict_proba([processed_text])
+
+    probs = np.array([
+    get_positive_probs(p)[0]
+    for p in y_prob_input
+    ])
     
     tfidf_vectorizer = best_model.named_steps['tfidf']
     clf_onevsrest = best_model.named_steps['clf']
@@ -194,14 +219,17 @@ while True:
     for idx in sorted_indices:
         prob_percent = probs[idx] * 100
         
-        if prob_percent >= config.CONFIDENCE_THRESHOLD:
+        if probs[idx] >= config.CONFIDENCE_THRESHOLD:
             results_found = True
             genre_name = mlb.classes_[idx]
             
             nb_estimator = clf_onevsrest.estimators_[idx]
             word_scores = []
             for word_idx in present_word_indices:
-                weight = nb_estimator.feature_log_prob_[1][word_idx] * input_vector[0, word_idx]
+                if nb_estimator.feature_log_prob_.shape[0] > 1:
+                    weight = nb_estimator.feature_log_prob_[1][word_idx] * input_vector[0, word_idx]
+                else:
+                    weight = 0
                 word_scores.append((feature_names[word_idx], weight))
             
             word_scores.sort(key=lambda x: x[1], reverse=True)
