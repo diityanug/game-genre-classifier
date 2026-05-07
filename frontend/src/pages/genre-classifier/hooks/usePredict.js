@@ -17,17 +17,25 @@ export const usePredict = () => {
         body: JSON.stringify({ title, description })
       });
 
-      if (!response.ok) throw new Error("Connection failed.");
-
       const result = await response.json();
-      
-      if (result.status === 'error') {
-        setErrorMsg(result.message);
-      } else {
-        setPredictions(result.data);
+
+      if (!response.ok) {
+        setErrorMsg(result.detail || "Server error occurred.");
+        return; 
       }
+
+      if (result.status === 'success' && result.data && result.data.length > 0) {
+        const dataWithOriginalText = [...result.data];
+        dataWithOriginalText[0] = {
+          ...dataWithOriginalText[0],
+          originalText: `${title}. ${description}`
+        };
+        
+        setPredictions(dataWithOriginalText);
+      }
+
     } catch (error) {
-      setErrorMsg("Server offline. Backend didn't respond.");
+      setErrorMsg("Server offline.");
     } finally {
       setIsLoading(false);
     }
