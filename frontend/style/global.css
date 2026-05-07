@@ -1,12 +1,14 @@
 :root {
-  --sb-track: #0B101A;
-  --sb-thumb: #1F2937;
-  --sb-thumb-hover: #374151;
+  /* Ubah variabel ke tema terang (Ivory & Slate) */
+  --sb-track: #FDFBF7;       /* Background putih gading */
+  --sb-thumb: #cbd5e1;       /* Warna scrollbar bawaan (slate-300) */
+  --sb-thumb-hover: #94a3b8; /* Warna scrollbar saat di-hover (slate-400) */
 }
 
 html, body {
   scroll-behavior: smooth;
-  background-color: #0B101A;
+  background-color: var(--sb-track); /* Agar body mengikuti warna terang */
+  color: #0f172a; /* Warna teks default jadi gelap (slate-900) */
 }
 
 * {
@@ -34,6 +36,7 @@ html, body {
   background-color: var(--sb-thumb-hover);
 }
 
+/* Animasinya tetap sama, ini sudah oke banget */
 @keyframes floatFade {
   0% {
     opacity: 0;

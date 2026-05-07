@@ -4,6 +4,7 @@ import time
 import os
 import re
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import config
 
@@ -94,25 +95,53 @@ def start_collection(label_list, final_file, limit_per_label, batch_size):
 
     for label in label_list:
         print(f"\n--- Fetching category: {label} ---")
-        raw_games = get_games_by_label(label, limit=limit_per_label)
-        batch_data = []
-        count = 0
+        param_type, slug = config.RAWG_MAPPING[label]
         
-        for game in raw_games:
-            if count >= limit_per_label: break
-            appid = int(game.get('id'))
-            if appid in collected_appids: continue
+        count = 0
+        page = 1
+        batch_data = []
+        
+        while count < limit_per_label:
+            url = f"https://api.rawg.io/api/games?key={config.API_KEY}&{param_type}={slug}&page_size={config.API_PAGE_SIZE}&page={page}"
+            
+            try:
+                response = requests.get(url, timeout=config.API_TIMEOUT)
+                if response.status_code != 200:
+                    print(f"⚠️ RAWG API Error (or end of pages): {response.status_code}")
+                    break
+                    
+                data = response.json()
+                results = data.get('results', [])
+                
+                if not results:
+                    print(f"✅ No more games left on RAWG for label '{label}'.")
+                    break
+                    
+                for game in results:
+                    if count >= limit_per_label:
+                        break
+                        
+                    appid = int(game.get('id'))
+                    
+                    if appid in collected_appids:
+                        continue
+                        
+                    game_data = process_single_game(appid, label, collected_appids)
+                    if game_data:
+                        batch_data.append(game_data)
+                        collected_appids.add(appid)
+                        count += 1
+                        print(f"[{label}] {count}/{limit_per_label}. Retrieved: {game_data['title']}")
 
-            game_data = process_single_game(appid, label, collected_appids)
-            if game_data:
-                batch_data.append(game_data)
-                collected_appids.add(appid)
-                count += 1
-                print(f"[{label}] {count}. Retrieved: {game_data['title']}")
+                        if len(batch_data) >= batch_size:
+                            pd.DataFrame(batch_data).to_csv(final_file, mode='a', index=False, header=False, encoding='utf-8')
+                            batch_data = []
 
-                if len(batch_data) >= batch_size:
-                    pd.DataFrame(batch_data).to_csv(final_file, mode='a', index=False, header=False, encoding='utf-8')
-                    batch_data = []
+                page += 1
+                
+            except Exception as e:
+                print(f"⚠️ Error retrieving {label} on page {page}: {e}")
+                break
 
         if batch_data:
             pd.DataFrame(batch_data).to_csv(final_file, mode='a', index=False, header=False, encoding='utf-8')

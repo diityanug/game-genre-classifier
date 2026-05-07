@@ -2,10 +2,10 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Collecting Datsets
 API_KEY = os.getenv('RAWG_API_KEY')
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE_PATH = os.path.join(BASE_DIR, 'data', 'game_genre_dataset.csv')
 
 LIMIT_PER_LABEL = 1000
@@ -47,17 +47,13 @@ RAWG_MAPPING = {
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
 THRESHOLDS = {
-    "Shooter": 0.25,
-    "Open World": 0.3,
-    "Massively Multiplayer": 0.3,
-    "Default": 0.4
+    "Shooter": 0.60,
+    "Open World": 0.60,
+    "Massively Multiplayer": 0.65,
+    "Default": 0.65
 }
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 MODEL_DIR = os.path.join(BASE_DIR, 'models')
-
 MODEL_FILE_PATH = os.path.join(MODEL_DIR, 'model_multilabel.pkl')
 MLB_FILE_PATH = os.path.join(MODEL_DIR, 'mlb.pkl')
 
