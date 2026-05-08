@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Sparkles, CheckCircle2, Activity } from 'lucide-react';
+import { Trophy, Sparkles, CheckCircle2 } from 'lucide-react';
 
 const HighlightedDescription = ({ text, keywords }) => {
   if (!keywords || !text) return null;
@@ -37,8 +37,6 @@ export const PredictionResult = ({ predictions }) => {
 
   return (
     <div className="mt-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      
-      {/* Bento Box Wrapper */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] overflow-hidden">
         <div className="p-8 md:p-12">
           
@@ -61,7 +59,6 @@ export const PredictionResult = ({ predictions }) => {
                 >
                   <div className="flex items-center justify-between w-full gap-4">
                     
-                    {/* Icon & Title */}
                     <div className="flex items-center min-w-[140px]">
                       <div className={`p-2.5 rounded-xl mr-4 ${isTopResult ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-500'}`}>
                         {isTopResult ? <Trophy className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
@@ -71,7 +68,6 @@ export const PredictionResult = ({ predictions }) => {
                       </span>
                     </div>
                     
-                    {/* Progress Bar */}
                     <div className="flex-1 max-w-md hidden sm:block">
                       <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
                         <div 
@@ -80,17 +76,14 @@ export const PredictionResult = ({ predictions }) => {
                         ></div>
                       </div>
                     </div>
-                    
-                    {/* Percentage */}
+
                     <div className="min-w-[80px] text-right">
                       <span className={`font-black tracking-tighter ${isTopResult ? 'text-slate-900 text-3xl' : 'text-slate-400 text-xl'}`}>
                         {pred.probability}<span className="text-sm ml-0.5">%</span>
                       </span>
                     </div>
-
                   </div>
 
-                  {/* Highlights Content */}
                   {isTopResult && pred.keywords && (
                     <HighlightedDescription text={pred.originalText} keywords={pred.keywords} />
                   )}

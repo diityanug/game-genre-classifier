@@ -42,7 +42,7 @@ function App() {
           {isOnline === null ? (
             <>
               <div className="w-2 h-2 bg-slate-300 rounded-full animate-pulse" />
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Checking Node</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Checking</span>
             </>
           ) : isOnline ? (
             <>
