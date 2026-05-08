@@ -4,7 +4,7 @@ import joblib
 import spacy
 import config
 
-# LOAD SPACY
+# --- LOAD SPACY
 try:
     nlp = spacy.load("en_core_web_sm")
 
@@ -16,7 +16,7 @@ try:
 except OSError:
     raise RuntimeError("spaCy model missing. Run: python -m spacy download en_core_web_sm")
 
-# LOAD MODEL
+# --- LOAD MODEL
 try:
     BASE_DIR = os.path.dirname(__file__)
 
@@ -31,7 +31,7 @@ except Exception as e:
     model = None
     mlb = None
 
-# PREPROCESSING
+# --- PREPROCESSING
 def preprocess_pipeline(text: str) -> str:
     if not isinstance(text, str):
         return ""
@@ -49,7 +49,7 @@ def preprocess_pipeline(text: str) -> str:
         if not token.is_stop and len(token) > 2
     ])
 
-# PREDICTION
+# --- PREDICTION
 def get_prediction(title: str, description: str):
     if model is None or mlb is None:
         return {"status": "error", "code": 500, "message": "ML Services offline."}

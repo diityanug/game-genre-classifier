@@ -81,6 +81,8 @@ def process_single_game(game_id, current_label, collected_appids):
 def start_collection(label_list, final_file, limit_per_label, batch_size):
     collected_appids = set()
     os.makedirs(os.path.dirname(final_file), exist_ok=True)
+    
+    existing_df = None
 
     if os.path.exists(final_file):
         try:
@@ -93,11 +95,24 @@ def start_collection(label_list, final_file, limit_per_label, batch_size):
     else:
         pd.DataFrame(columns=['appid', 'title', 'genres', 'description']).to_csv(final_file, index=False)
 
+    # SCRAPING
     for label in label_list:
         print(f"\n--- Fetching category: {label} ---")
+        
+        current_count = 0
+        if existing_df is not None and 'genres' in existing_df.columns:
+            current_count = existing_df['genres'].fillna('').str.contains(label, regex=False).sum()
+            
+        if current_count >= limit_per_label:
+            print(f"✅ Collection skipped for category '{label}' ({current_count}/{limit_per_label}) — target already reached.")
+            continue
+            
+        if current_count > 0:
+            print(f"📊 Current progress: {current_count}/{limit_per_label}. Collecting the remaining {limit_per_label - current_count}")
+        
         param_type, slug = config.RAWG_MAPPING[label]
         
-        count = 0
+        count = current_count
         page = 1
         batch_data = []
         

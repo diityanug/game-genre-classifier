@@ -130,7 +130,7 @@ best_model = grid_search.best_estimator_
 
 print("\nBest Params Found:", grid_search.best_params_)
 
-# EVALUATION
+# --- EVALUATION
 print("\nEvaluation")
 y_prob = best_model.predict_proba(X_test)
 y_pred = np.zeros((len(X_test), len(mlb.classes_)))
@@ -161,13 +161,13 @@ plt.ylim(0, 1.0)
 plt.tight_layout()
 plt.show()
 
-# SAVING MODELS
+# ---- SAVING MODELS
 os.makedirs(config.MODEL_DIR, exist_ok=True)
 joblib.dump(best_model, config.MODEL_FILE_PATH)
 joblib.dump(mlb, config.MLB_FILE_PATH)
 print(f"\nModels successfully saved to {config.MODEL_DIR}")
 
-# INTERACTIVE TESTING
+# ---- INTERACTIVE TESTING
 print("\nTESTING MODELS")
 print("Type 'exit' or 'quit' on Title to stop.")
 

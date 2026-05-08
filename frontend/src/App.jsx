@@ -15,7 +15,7 @@ function App() {
 
       {/* Footer */}
       <footer className="w-full relative z-10 border-t border-slate-200">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="w-full px-8 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
           
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3 text-center md:text-left">
             <p className="text-slate-900 font-bold text-sm">

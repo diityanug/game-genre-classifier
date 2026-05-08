@@ -1,74 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Gamepad2, FileText, Loader2, AlertCircle, X } from 'lucide-react';
 import { usePredict } from '../hooks/usePredict';
+import { useTypewriter } from '../hooks/useTypewriter';
 import { PredictionResult } from './PredictionResult';
-
-const examples = [
-  {
-    title: "Star Wars Jedi: Fallen Order",
-    desc: "A story-driven action-adventure where a surviving Jedi explores planets, fights enemies with lightsaber combat, and uses Force abilities to restore hope."
-  },
-  {
-    title: "Grand Theft Auto V",
-    desc: "An open-world action game where players control multiple characters to complete missions, heists, and explore a dynamic modern city"
-  },
-  {
-    title: "Cyberpunk 2077",
-    desc: "A futuristic open-world RPG set in a dystopian city where players customize their character and navigate story-driven missions involving technology and power."
-  }
-];
+import { GAME_EXAMPLES } from '../utils/constants';
 
 const GenreClassifier = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  
-  const [titlePlaceholder, setTitlePlaceholder] = useState('');
-  const [descPlaceholder, setDescPlaceholder] = useState('');
   const [isInteracting, setIsInteracting] = useState(false);
-  const [exampleIdx, setExampleIdx] = useState(0);
-  const [charIdx, setCharIdx] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const { predictions, errorMsg, isLoading, predictGenre, setPredictions, setErrorMsg } = usePredict();
-
-  useEffect(() => {
-    if (isInteracting) {
-      setTitlePlaceholder('Enter game title...');
-      setDescPlaceholder('Describe the game mechanics, story, and gameplay...');
-      return;
-    }
-
-    const currentExample = examples[exampleIdx];
-    const fullTitle = currentExample.title;
-    const fullDesc = currentExample.desc;
-    const maxLen = Math.max(fullTitle.length, fullDesc.length);
-
-    const typeSpeed = isDeleting ? 20 : 40;
-    const delay = isDeleting && charIdx === 0 ? 500 : (!isDeleting && charIdx === maxLen ? 2000 : typeSpeed);
-
-    const timer = setTimeout(() => {
-      if (!isDeleting) {
-        if (charIdx < maxLen) {
-          setTitlePlaceholder(fullTitle.substring(0, charIdx + 1));
-          setDescPlaceholder(fullDesc.substring(0, charIdx + 1));
-          setCharIdx(prev => prev + 1);
-        } else {
-          setIsDeleting(true);
-        }
-      } else {
-        if (charIdx > 0) {
-          setTitlePlaceholder(fullTitle.substring(0, charIdx - 1));
-          setDescPlaceholder(fullDesc.substring(0, charIdx - 1));
-          setCharIdx(prev => prev - 1);
-        } else {
-          setIsDeleting(false);
-          setExampleIdx((prev) => (prev + 1) % examples.length);
-        }
-      }
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [charIdx, isDeleting, exampleIdx, isInteracting]);
+  const { titlePlaceholder, descPlaceholder, resetTypewriter } = useTypewriter(GAME_EXAMPLES, isInteracting);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,11 +24,11 @@ const GenreClassifier = () => {
   };
 
   const handleFocus = () => setIsInteracting(true);
+  
   const handleBlur = () => {
     if (!title && !description) {
       setIsInteracting(false);
-      setCharIdx(0);
-      setIsDeleting(false);
+      resetTypewriter();
     }
   };
 
